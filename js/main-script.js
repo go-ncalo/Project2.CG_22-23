@@ -13,6 +13,8 @@ var fieldScene, skyScene;
 var field, sky;
 var heightMapTexture;
 var controls;
+var moonDirectionalLight;
+var moonAmbientLight;
 
 
 /////////////////////
@@ -36,9 +38,9 @@ function createCameras() {
     var height = window.innerHeight;
 
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-    camera.position.z = 70;
+    camera.position.z = -70;
     camera.position.y = 35;
-    camera.position.x = 70;
+    camera.position.x = -70;
 
     camera.lookAt(scene.position);
 
@@ -53,6 +55,14 @@ function createCameras() {
 /////////////////////
 /* CREATE LIGHT(S) */
 /////////////////////
+function createLights() {
+    'use strict';
+    moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.5);
+    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.05);
+    moon.add(moonDirectionalLight);
+    moon.add(moonAmbientLight);
+
+}
 
 ////////////////////////
 /* CREATE OBJECT3D(S) */
@@ -71,7 +81,7 @@ function createMaterials() {
 
 function createFlowerFieldTexture() {
     for (let i = 0; i < 4; i++) {
-        for (let j = 0; j < 400; j++) {
+        for (let j = 0; j < 500; j++) {
             const geometry = new THREE.CircleGeometry(0.05, 32); 
             const flower = new THREE.Mesh(geometry, materials[i]);
 
@@ -137,8 +147,20 @@ function createSky() {
     
     sky = new THREE.Mesh(geometry, material);
 
-
     scene.add(sky);
+}
+
+function createMoon() {
+    const geometry = new THREE.SphereBufferGeometry(10, 100, 100);
+    const material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+
+    moon = new THREE.Mesh(geometry, material);
+
+    moon.position.x = 50;
+    moon.position.y = 50;
+    moon.position.z = 50;
+
+    scene.add(moon);
 }
 
 ////////////
@@ -182,8 +204,8 @@ function init() {
     createStarySkyTexture();
     createField();
     createSky();
-    var light = new THREE.AmbientLight(0xffffff); // soft white light
-    scene.add(light);
+    createMoon();
+    createLights();
 
     window.addEventListener("keydown", onKeyDown);
     //window.addEventListener("resize", onResize);
