@@ -1,3 +1,4 @@
+
 //////////////////////
 /* GLOBAL VARIABLES */
 //////////////////////
@@ -5,10 +6,14 @@
 var camera, scene, renderer;
 var geometry, material, mesh;
 const materials = [];
-var fieldTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight);
-var skyTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight);
+var cameraTexture;
+var fieldTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
+var skyTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var fieldScene, skyScene;
-var cube, cube2;
+var field, sky;
+var heightMapTexture;
+var controls;
+
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -30,10 +35,18 @@ function createCameras() {
     var width = window.innerWidth;
     var height = window.innerHeight;
 
-    camera = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
-    camera.position.z = 2;
+    camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+    camera.position.z = 70;
+    camera.position.y = 35;
+    camera.position.x = 70;
 
     camera.lookAt(scene.position);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    cameraTexture = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
+    cameraTexture.position.z = 15;
+
 }
 
 
@@ -56,7 +69,7 @@ function createMaterials() {
     materials.push(material);
 }
 
-function createFlowerField() {
+function createFlowerFieldTexture() {
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 400; j++) {
             const geometry = new THREE.CircleGeometry(0.05, 32); 
@@ -70,9 +83,9 @@ function createFlowerField() {
     }
 }
 
-function createStarySky() {
-    for (let i = 0; i < 1000; i++) {
-        const geometry = new THREE.CircleGeometry(0.05, 32);
+function createStarySkyTexture() {
+    for (let i = 0; i < 300; i++) {
+        const geometry = new THREE.CircleGeometry(0.02, 32);
         const star = new THREE.Mesh(geometry, materials[0]);
 
         star.position.x = Math.random() * window.innerWidth / 35 - window.innerWidth / 70;
@@ -106,22 +119,26 @@ function createStarySky() {
     skyScene.add(sky);
 }
 
-function createBox() {
-    const geometry = new THREE.BoxGeometry(5, 5, 5);
-    const material = new THREE.MeshBasicMaterial({});
-    cube = new THREE.Mesh(geometry, material);
+function createField() {
+    const geometry = new THREE.PlaneBufferGeometry(100, 100, 50, 50);
+    const loader = new THREE.TextureLoader();
+    heightMapTexture = loader.load('js/textures/heightmap.png');
+    const material = new THREE.MeshPhongMaterial({displacementMap: heightMapTexture, displacementScale: 15});
 
-    scene.add(cube);
+    field = new THREE.Mesh(geometry, material);
+
+    field.rotation.x = -Math.PI / 2;
+    scene.add(field);
 }
 
-function createBox2() {
-    const geometry = new THREE.BoxGeometry(5, 5, 5);
-    const material = new THREE.MeshBasicMaterial({});
-    cube2 = new THREE.Mesh(geometry, material);
+function createSky() {
+    const geometry = new THREE.SphereBufferGeometry(100, 100, 100);
+    const material = new THREE.MeshPhongMaterial({side: THREE.BackSide});
+    
+    sky = new THREE.Mesh(geometry, material);
 
-    cube2.position.x = 10;
 
-    scene.add(cube2);
+    scene.add(sky);
 }
 
 ////////////
@@ -137,16 +154,14 @@ function update(){
 /////////////
 function render() {
     'use strict';
-
     renderer.setRenderTarget(fieldTexture);
-    renderer.render(fieldScene, camera);
+    renderer.render(fieldScene, cameraTexture);
 
     renderer.setRenderTarget(skyTexture);
-    renderer.render(skyScene, camera);
+    renderer.render(skyScene, cameraTexture);
 
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
-    
 }
 
 ////////////////////////////////
@@ -163,10 +178,12 @@ function init() {
     createScene();
     createCameras();
     createMaterials();
-    createFlowerField();
-    createStarySky();
-    createBox();
-    createBox2();
+    createFlowerFieldTexture();
+    createStarySkyTexture();
+    createField();
+    createSky();
+    var light = new THREE.AmbientLight(0xffffff); // soft white light
+    scene.add(light);
 
     window.addEventListener("keydown", onKeyDown);
     //window.addEventListener("resize", onResize);
@@ -178,7 +195,7 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-
+    controls.update();
     render();
     requestAnimationFrame(animate);
 }
@@ -197,14 +214,13 @@ function onResize() {
 function onKeyDown(e) {
     'use strict';
 
-    // when 1 is pressed change material of cube to the texture
+    // when 1 is pressed change material of field to the texture still having the displacement map  
     if (e.keyCode == 49) {
-        cube.material = new THREE.MeshBasicMaterial({ map: fieldTexture.texture });
+        field.material = new THREE.MeshPhongMaterial({map: fieldTexture.texture, displacementMap: heightMapTexture, displacementScale: 15});
     }
-
     // when 2 is pressed change material of cube to the texture
     if (e.keyCode == 50) {
-        cube2.material = new THREE.MeshBasicMaterial({ map: skyTexture.texture });
+        sky.material = new THREE.MeshBasicMaterial({map: skyTexture.texture, side: THREE.BackSide});
     }
 }
 
