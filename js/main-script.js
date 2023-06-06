@@ -58,7 +58,7 @@ function createCameras() {
 function createLights() {
     'use strict';
     moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.5);
-    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.07);
+    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.3);
     moon.add(moonDirectionalLight);
     moon.add(moonAmbientLight);
 
@@ -130,7 +130,7 @@ function createStarySkyTexture() {
 }
 
 function createField() {
-    const geometry = new THREE.PlaneBufferGeometry(100, 100, 50, 50);
+    const geometry = new THREE.CircleGeometry(100, 100);
     const loader = new THREE.TextureLoader();
     heightMapTexture = loader.load('js/textures/heightmap.png');
     const material = new THREE.MeshStandardMaterial({displacementMap: heightMapTexture, displacementScale: 15});
@@ -142,7 +142,7 @@ function createField() {
 }
 
 function createSky() {
-    const geometry = new THREE.SphereBufferGeometry(100, 100, 100);
+    const geometry = new THREE.SphereBufferGeometry(100, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
     const material = new THREE.MeshStandardMaterial({side: THREE.BackSide});
     
     sky = new THREE.Mesh(geometry, material);
@@ -224,6 +224,91 @@ function createCorkOak(x, y, z, scale, rotation) {
     return corkOak;
 }
 
+function createShip(obj, x, y, z) {
+    const geometry = new THREE.SphereBufferGeometry(10, 100, 100);
+    const material = new THREE.MeshPhongMaterial({color: 0xa7a7a7});
+
+    ship = new THREE.Mesh(geometry, material);
+
+    ship.scale.y = 0.4;
+
+    ship.position.x = x;
+    ship.position.y = y;
+    ship.position.z = z;
+
+    obj.add(ship);
+}
+
+function createCockpit(obj, x, y, z) {
+    const geometry = new THREE.SphereBufferGeometry(5, 100, 100);
+    const material = new THREE.MeshPhongMaterial({color: 'white'});
+
+    cockpit = new THREE.Mesh(geometry, material);
+
+    cockpit.position.x = x;
+    cockpit.position.y = y;
+    cockpit.position.z = z;
+
+    obj.add(cockpit);
+}
+
+function createSphere(obj, x, y, z) {
+    const geometry = new THREE.SphereBufferGeometry(0.7, 100, 100);
+    const material = new THREE.MeshPhongMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+
+    const sphere = new THREE.Mesh(geometry, material);
+
+    sphere.position.x = x;
+    sphere.position.y = y;
+    sphere.position.z = z;
+
+    const sphereLight = new THREE.PointLight( 0xff0000, 0.1, 50);
+    sphere.add(sphereLight);
+
+
+    obj.add(sphere);
+}
+
+function createRadialSphere(obj, x, y, z, rotation) {
+    let radial = new THREE.Object3D();
+
+    createSphere(radial, 4.5, 36.75, 4.5);
+    radial.position.x = x;
+    radial.position.x = y;
+    radial.position.x = z;
+    radial.rotation.y = rotation;
+    obj.add(radial);
+}
+
+function createCylinder(obj, x, y, z) {
+    const geometry = new THREE.CylinderBufferGeometry(2.5, 2.5, 2.5, 100);
+    const material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+
+    const cylinder = new THREE.Mesh(geometry, material);
+
+    cylinder.position.x = x;
+    cylinder.position.y = y;
+    cylinder.position.z = z;
+
+    const cylinderLight = new THREE.SpotLight('yellow', 0.5, 50);
+    cylinder.add(cylinderLight);
+
+    obj.add(cylinder)
+}
+
+function createOvni() {
+    ovni = new THREE.Object3D();
+
+    createShip(ovni, 0, 40, 0);
+    createCockpit(ovni, 0, 42.5, 0);
+    for (let i = 0; i < 10; i++) {
+        createRadialSphere(ovni, 0, 0, 0, ((2*Math.PI/10) * i));
+    }
+    createCylinder(ovni, 0, 36.5, 0);
+
+    scene.add(ovni);
+}
+
 ////////////
 /* UPDATE */
 ////////////
@@ -271,6 +356,7 @@ function init() {
     createCorkOak(-35, 9, -25, 0.7, -Math.PI/5);
     createCorkOak(-25, 9, 25, 1.3, -Math.PI/4);
     createCorkOak(0, 9, -35, 1, -Math.PI);
+    createOvni();
     createLights();
 
 
@@ -303,6 +389,8 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
+
+    // DESLIGAR AS LUZES
 
     // when 1 is pressed change material of field to the texture still having the displacement map  
     if (e.keyCode == 49) {
