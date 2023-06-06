@@ -58,7 +58,7 @@ function createCameras() {
 function createLights() {
     'use strict';
     moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.5);
-    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.05);
+    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.07);
     moon.add(moonDirectionalLight);
     moon.add(moonAmbientLight);
 
@@ -133,7 +133,7 @@ function createField() {
     const geometry = new THREE.PlaneBufferGeometry(100, 100, 50, 50);
     const loader = new THREE.TextureLoader();
     heightMapTexture = loader.load('js/textures/heightmap.png');
-    const material = new THREE.MeshPhongMaterial({displacementMap: heightMapTexture, displacementScale: 15});
+    const material = new THREE.MeshStandardMaterial({displacementMap: heightMapTexture, displacementScale: 15});
 
     field = new THREE.Mesh(geometry, material);
 
@@ -143,7 +143,7 @@ function createField() {
 
 function createSky() {
     const geometry = new THREE.SphereBufferGeometry(100, 100, 100);
-    const material = new THREE.MeshPhongMaterial({side: THREE.BackSide});
+    const material = new THREE.MeshStandardMaterial({side: THREE.BackSide});
     
     sky = new THREE.Mesh(geometry, material);
 
@@ -152,7 +152,7 @@ function createSky() {
 
 function createMoon() {
     const geometry = new THREE.SphereBufferGeometry(10, 100, 100);
-    const material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+    const material = new THREE.MeshStandardMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
 
     moon = new THREE.Mesh(geometry, material);
 
@@ -161,6 +161,67 @@ function createMoon() {
     moon.position.z = 50;
 
     scene.add(moon);
+}
+
+function createOakStem(obj) {
+    const stemGeometry = new THREE.CylinderBufferGeometry(1.5, 1.5, 15, 100);
+    const stemMaterial = new THREE.MeshStandardMaterial({color: 0x8b4513});
+    const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+
+    const stem1Geometry = new THREE.CylinderBufferGeometry(1, 1, 7, 100);
+    const stem1Material = new THREE.MeshStandardMaterial({color: 0x8b4513});
+    const stem1 = new THREE.Mesh(stem1Geometry, stem1Material);
+
+    stem.rotation.x = -Math.PI / 10;
+
+    stem1.position.z = 2.5;
+    stem1.rotation.x = Math.PI / 5;
+
+    stem.add(stem1);
+    obj.add(stem);
+}
+
+function createOakLeaf(obj) {
+    const leafGeometry = new THREE.SphereBufferGeometry(5, 100, 100);
+    const leafMaterial = new THREE.MeshStandardMaterial({color: 0x006400});
+    const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+
+    const leaf1Geometry = new THREE.SphereBufferGeometry(7, 100, 100);
+    const leaf1Material = new THREE.MeshStandardMaterial({color: 0x006400});
+    const leaf1 = new THREE.Mesh(leaf1Geometry, leaf1Material);
+
+    leaf.position.y = 5;
+    leaf.position.z = 5;
+
+    leaf.scale.x = 0.5;
+    leaf.scale.y = 0.5;
+
+    leaf1.position.y = 6;
+    leaf1.position.z = -8;
+
+    leaf.add(leaf1);
+    obj.add(leaf);
+}
+
+function createCorkOak(x, y, z, scale, rotation) {
+    const corkOak = new THREE.Object3D();
+
+    createOakStem(corkOak);
+    createOakLeaf(corkOak);
+
+    corkOak.position.x = x;
+    corkOak.position.y = y;
+    corkOak.position.z = z;
+
+    corkOak.scale.x = scale;
+    corkOak.scale.y = scale;
+    corkOak.scale.z = scale;
+
+    corkOak.rotation.y = rotation;
+
+    scene.add(corkOak);
+
+    return corkOak;
 }
 
 ////////////
@@ -205,7 +266,14 @@ function init() {
     createField();
     createSky();
     createMoon();
+    createCorkOak(20, 10, 20, 1, Math.PI/5);
+    createCorkOak(30, 10, -10, 0.8, Math.PI/2);
+    createCorkOak(-35, 9, -25, 0.7, -Math.PI/5);
+    createCorkOak(-25, 9, 25, 1.3, -Math.PI/4);
+    createCorkOak(0, 9, -35, 1, -Math.PI);
     createLights();
+
+
 
     window.addEventListener("keydown", onKeyDown);
     //window.addEventListener("resize", onResize);
