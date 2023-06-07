@@ -10,11 +10,22 @@ var cameraTexture;
 var fieldTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var skyTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var fieldScene, skyScene;
-var field, sky;
+var field, sky, moon, stem, stem1, leaf, leaf1, ship, cockpit, cylinder;
+var spheres = [];
 var heightMapTexture;
 var controls;
-var moonDirectionalLight;
-var moonAmbientLight;
+var moonDirectionalLight, moonAmbientLight, sphereLight, cylinderLight;
+var sphereLights = [];
+var delta;
+const clock = new THREE.Clock();
+var k = {};
+
+const
+    Q = 81, W = 87, E = 69, R = 82,
+    S = 83, P = 80, A = 65, D = 68,
+    LEFT = 37, RIGHT = 39, UP = 38, DOWN = 40,
+    N1 = 49, N2 = 50;
+
 
 
 /////////////////////
@@ -38,17 +49,16 @@ function createCameras() {
     var height = window.innerHeight;
 
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-    camera.position.z = -70;
-    camera.position.y = 35;
-    camera.position.x = -70;
+    camera.position.z = -60;
+    camera.position.y = 40;
+    camera.position.x = -30;
 
-    camera.lookAt(scene.position);
+    camera.lookAt(0, 30, 0);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     cameraTexture = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     cameraTexture.position.z = 15;
-
 }
 
 
@@ -57,8 +67,8 @@ function createCameras() {
 /////////////////////
 function createLights() {
     'use strict';
-    moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.5);
-    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.3);
+    moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.1);
+    moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.5);
     moon.add(moonDirectionalLight);
     moon.add(moonAmbientLight);
 
@@ -130,10 +140,10 @@ function createStarySkyTexture() {
 }
 
 function createField() {
-    const geometry = new THREE.CircleGeometry(100, 100);
+    const geometry = new THREE.PlaneBufferGeometry(200, 200, 100, 100);
     const loader = new THREE.TextureLoader();
     heightMapTexture = loader.load('js/textures/heightmap.png');
-    const material = new THREE.MeshStandardMaterial({displacementMap: heightMapTexture, displacementScale: 15});
+    const material = new THREE.MeshPhongMaterial({displacementMap: heightMapTexture, displacementScale: 50});
 
     field = new THREE.Mesh(geometry, material);
 
@@ -143,7 +153,7 @@ function createField() {
 
 function createSky() {
     const geometry = new THREE.SphereBufferGeometry(100, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2);
-    const material = new THREE.MeshStandardMaterial({side: THREE.BackSide});
+    const material = new THREE.MeshPhongMaterial({side: THREE.BackSide});
     
     sky = new THREE.Mesh(geometry, material);
 
@@ -152,25 +162,25 @@ function createSky() {
 
 function createMoon() {
     const geometry = new THREE.SphereBufferGeometry(10, 100, 100);
-    const material = new THREE.MeshStandardMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+    const material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
 
     moon = new THREE.Mesh(geometry, material);
 
-    moon.position.x = 50;
-    moon.position.y = 50;
-    moon.position.z = 50;
+    moon.position.x = 40;
+    moon.position.y = 75;
+    moon.position.z = 20;
 
     scene.add(moon);
 }
 
 function createOakStem(obj) {
     const stemGeometry = new THREE.CylinderBufferGeometry(1.5, 1.5, 15, 100);
-    const stemMaterial = new THREE.MeshStandardMaterial({color: 0x8b4513});
-    const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+    const stemMaterial = new THREE.MeshPhongMaterial({color: 0x932e0f});
+    stem = new THREE.Mesh(stemGeometry, stemMaterial);
 
     const stem1Geometry = new THREE.CylinderBufferGeometry(1, 1, 7, 100);
-    const stem1Material = new THREE.MeshStandardMaterial({color: 0x8b4513});
-    const stem1 = new THREE.Mesh(stem1Geometry, stem1Material);
+    const stem1Material = new THREE.MeshPhongMaterial({color: 0x932e0f});
+    stem1 = new THREE.Mesh(stem1Geometry, stem1Material);
 
     stem.rotation.x = -Math.PI / 10;
 
@@ -183,12 +193,12 @@ function createOakStem(obj) {
 
 function createOakLeaf(obj) {
     const leafGeometry = new THREE.SphereBufferGeometry(5, 100, 100);
-    const leafMaterial = new THREE.MeshStandardMaterial({color: 0x006400});
-    const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+    const leafMaterial = new THREE.MeshPhongMaterial({color: 0x006400});
+    leaf = new THREE.Mesh(leafGeometry, leafMaterial);
 
     const leaf1Geometry = new THREE.SphereBufferGeometry(7, 100, 100);
-    const leaf1Material = new THREE.MeshStandardMaterial({color: 0x006400});
-    const leaf1 = new THREE.Mesh(leaf1Geometry, leaf1Material);
+    const leaf1Material = new THREE.MeshPhongMaterial({color: 0x006400});
+    leaf1 = new THREE.Mesh(leaf1Geometry, leaf1Material);
 
     leaf.position.y = 5;
     leaf.position.z = 5;
@@ -262,9 +272,11 @@ function createSphere(obj, x, y, z) {
     sphere.position.y = y;
     sphere.position.z = z;
 
-    const sphereLight = new THREE.PointLight( 0xff0000, 0.1, 50);
+    sphereLight = new THREE.PointLight( 0xff0000, 0.05, 50);
+    sphereLights.push(sphereLight);
     sphere.add(sphereLight);
 
+    spheres.push(sphere);
 
     obj.add(sphere);
 }
@@ -290,13 +302,13 @@ function createCylinder(obj, x, y, z) {
     cylinder.position.y = y;
     cylinder.position.z = z;
 
-    const cylinderLight = new THREE.SpotLight('yellow', 0.5, 50);
+    cylinderLight = new THREE.SpotLight('yellow', 0.5, 50);
     cylinder.add(cylinderLight);
 
     obj.add(cylinder)
 }
 
-function createOvni() {
+function createOvni(y) {
     ovni = new THREE.Object3D();
 
     createShip(ovni, 0, 40, 0);
@@ -306,6 +318,8 @@ function createOvni() {
     }
     createCylinder(ovni, 0, 36.5, 0);
 
+    ovni.position.y = y;
+
     scene.add(ovni);
 }
 
@@ -314,6 +328,26 @@ function createOvni() {
 ////////////
 function update(){
     'use strict';
+    ovni.rotation.y += 1 * delta;
+
+    let vector = new THREE.Vector3(0,0,0);
+    if (k[LEFT]) { // LEFT
+        vector.x -= 1;
+    }
+
+    if (k[RIGHT]) { // RIGHT
+        vector.x += 1;
+    }
+
+    if (k[UP]) { // UP
+        vector.z -= 1;
+    }
+
+    if (k[DOWN]) { // DOWN
+        vector.z += 1;
+    }
+    vector.normalize();
+    ovni.position.add(vector.multiplyScalar(5  * delta));
 
 }
 
@@ -322,6 +356,10 @@ function update(){
 /////////////
 function render() {
     'use strict';
+    renderer.setAnimationLoop(function () {
+        renderer.render( scene, camera );
+    });
+
     renderer.setRenderTarget(fieldTexture);
     renderer.render(fieldScene, cameraTexture);
 
@@ -340,30 +378,28 @@ function init() {
     renderer = new THREE.WebGLRenderer({
         antialias: true
     });
+    renderer.xr.enabled = true;
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+    document.body.appendChild(VRButton.createButton(renderer));
     
     createScene();
-    createCameras();
+    createOvni(15);
     createMaterials();
     createFlowerFieldTexture();
     createStarySkyTexture();
     createField();
     createSky();
     createMoon();
-    createCorkOak(20, 10, 20, 1, Math.PI/5);
-    createCorkOak(30, 10, -10, 0.8, Math.PI/2);
-    createCorkOak(-35, 9, -25, 0.7, -Math.PI/5);
-    createCorkOak(-25, 9, 25, 1.3, -Math.PI/4);
-    createCorkOak(0, 9, -35, 1, -Math.PI);
-    createOvni();
+    createCorkOak(5, 27, 5, 1, 0);
     createLights();
+    createCameras();
 
 
 
     window.addEventListener("keydown", onKeyDown);
-    //window.addEventListener("resize", onResize);
-    //window.addEventListener("keyup", onKeyUp);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("keyup", onKeyUp);
 }
 
 /////////////////////
@@ -371,7 +407,10 @@ function init() {
 /////////////////////
 function animate() {
     'use strict';
-    controls.update();
+    delta = clock.getDelta();
+
+    update();   
+    //controls.update();
     render();
     requestAnimationFrame(animate);
 }
@@ -379,8 +418,15 @@ function animate() {
 ////////////////////////////
 /* RESIZE WINDOW CALLBACK */
 ////////////////////////////
-function onResize() { 
+function onResize() {
     'use strict';
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    if (window.innerHeight > 0 && window.innerWidth > 0) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+    }
 
 }
 
@@ -389,23 +435,91 @@ function onResize() {
 ///////////////////////
 function onKeyDown(e) {
     'use strict';
+    if (!k[e.keyCode])
+        switch (e.keyCode) {
+            case N1:
+                field.material = new THREE.MeshPhongMaterial({map: fieldTexture.texture, displacementMap: heightMapTexture, displacementScale: 50});
+                break;
+            case N2:
+                sky.material = new THREE.MeshPhongMaterial({map: skyTexture.texture, side: THREE.BackSide});
+                break;
+            case D:
+                moonDirectionalLight.visible = !moonDirectionalLight.visible;
+                break;
+            case P:
+                for (let i = 0; i < sphereLights.length; i++) {
+                    sphereLights[i].visible = !sphereLights[i].visible;
+                }
+                break;
+            case S:
+                cylinderLight.visible = !cylinderLight.visible;
+                break;
 
-    // DESLIGAR AS LUZES
+            case Q:
+                moon.material = new THREE.MeshLambertMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+                stem.material = new THREE.MeshLambertMaterial({color: 0x932e0f});
+                stem1.material = new THREE.MeshLambertMaterial({color: 0x932e0f});
+                leaf.material = new THREE.MeshLambertMaterial({color: 0x006400});
+                leaf1.material = new THREE.MeshLambertMaterial({color: 0x006400});
+                ship.material = new THREE.MeshLambertMaterial({color: 0xa7a7a7});
+                cockpit.material =  new THREE.MeshLambertMaterial({color: 'white'});
+                for (let i = 0; i < spheres.length; i++) {
+                    spheres[i].material = new THREE.MeshLambertMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                }
+                cylinder.material = new THREE.MeshLambertMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                break;
+            
+            case W:
+                moon.material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+                stem.material = new THREE.MeshPhongMaterial({color: 0x932e0f});
+                stem1.material = new THREE.MeshPhongMaterial({color: 0x932e0f});
+                leaf.material = new THREE.MeshPhongMaterial({color: 0x006400});
+                leaf1.material = new THREE.MeshPhongMaterial({color: 0x006400});
+                ship.material = new THREE.MeshPhongMaterial({color: 0xa7a7a7});
+                cockpit.material =  new THREE.MeshPhongMaterial({color: 'white'});
+                for (let i = 0; i < spheres.length; i++) {
+                    spheres[i].material = new THREE.MeshPhongMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                }
+                cylinder.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
 
-    // when 1 is pressed change material of field to the texture still having the displacement map  
-    if (e.keyCode == 49) {
-        field.material = new THREE.MeshPhongMaterial({map: fieldTexture.texture, displacementMap: heightMapTexture, displacementScale: 15});
-    }
-    // when 2 is pressed change material of cube to the texture
-    if (e.keyCode == 50) {
-        sky.material = new THREE.MeshBasicMaterial({map: skyTexture.texture, side: THREE.BackSide});
-    }
+                break;
+            
+            case E:
+                moon.material = new THREE.MeshToonMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+                stem.material = new THREE.MeshToonMaterial({color: 0x932e0f});
+                stem1.material = new THREE.MeshToonMaterial({color: 0x932e0f});
+                leaf.material = new THREE.MeshToonMaterial({color: 0x006400});
+                leaf1.material = new THREE.MeshToonMaterial({color: 0x006400});
+                ship.material = new THREE.MeshToonMaterial({color: 0xa7a7a7});
+                cockpit.material =  new THREE.MeshToonMaterial({color: 'white'});
+                for (let i = 0; i < spheres.length; i++) {
+                    spheres[i].material = new THREE.MeshToonMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                }
+                cylinder.material = new THREE.MeshToonMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+
+                break;
+            
+            case R:
+                moon.material = new THREE.MeshBasicMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+                stem.material = new THREE.MeshBasicMaterial({color: 0x932e0f});
+                stem1.material = new THREE.MeshBasicMaterial({color: 0x932e0f});
+                leaf.material = new THREE.MeshBasicMaterial({color: 0x006400});
+                leaf1.material = new THREE.MeshBasicMaterial({color: 0x006400});
+                ship.material = new THREE.MeshBasicMaterial({color: 0xa7a7a7});
+                cockpit.material =  new THREE.MeshBasicMaterial({color: 'white'});
+                for (let i = 0; i < spheres.length; i++) {
+                    spheres[i].material = new THREE.MeshBasicMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                }
+                cylinder.material = new THREE.MeshBasicMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+
+                break;
+        }
+    k[e.keyCode] = true;
 }
-
 ///////////////////////
 /* KEY UP CALLBACK */
 ///////////////////////
 function onKeyUp(e){
     'use strict';
-
+    k[e.keyCode] = false;
 }
