@@ -10,15 +10,19 @@ var cameraTexture;
 var fieldTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var skyTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var fieldScene, skyScene;
-var field, sky, moon, stem, stem1, leaf, leaf1, ship, cockpit, cylinder;
+var field, sky, moon, stem, stem1, leaf, leaf1, ship, cockpit, cylinderOvni, building;
 var spheres = [];
+var stems = [];
+var leaves = [];
 var heightMapTexture;
 var controls;
 var moonDirectionalLight, moonAmbientLight, sphereLight, cylinderLight;
 var sphereLights = [];
-var delta;
 const clock = new THREE.Clock();
+var delta;
 var k = {};
+var isBasic = false;
+var cameraVR;
 
 const
     Q = 81, W = 87, E = 69, R = 82,
@@ -49,13 +53,15 @@ function createCameras() {
     var height = window.innerHeight;
 
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-    camera.position.z = -60;
+    camera.position.z = -70;
     camera.position.y = 40;
     camera.position.x = -30;
 
     camera.lookAt(0, 30, 0);
 
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    cameraVR = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
+
+    //controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     cameraTexture = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     cameraTexture.position.z = 15;
@@ -67,10 +73,11 @@ function createCameras() {
 /////////////////////
 function createLights() {
     'use strict';
-    moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.1);
+    moonDirectionalLight = new THREE.DirectionalLight(0xf3d150, 0.2);
+    moonDirectionalLight.position.set(moon.position.x, moon.position.y, moon.position.z);
     moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.5);
     moon.add(moonDirectionalLight);
-    moon.add(moonAmbientLight);
+    scene.add(moonAmbientLight);
 
 }
 
@@ -125,10 +132,8 @@ function createStarySkyTexture() {
         purple.r, purple.g, purple.b,      // purpleottom left
         purple.r, purple.g, purple.b ]);   // bottom right
 
-    // Set the vertex colors
     skyGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    // Note: no color is set on the material definition, only the attribute vertexColors is set to true
     var skyGradient = new THREE.MeshBasicMaterial({ vertexColors: true });
     var sky = new THREE.Mesh(skyGeometry, skyGradient);
 
@@ -187,6 +192,9 @@ function createOakStem(obj) {
     stem1.position.z = 2.5;
     stem1.rotation.x = Math.PI / 5;
 
+    stems.push(stem);
+    stems.push(stem1);
+
     stem.add(stem1);
     obj.add(stem);
 }
@@ -208,6 +216,9 @@ function createOakLeaf(obj) {
 
     leaf1.position.y = 6;
     leaf1.position.z = -8;
+
+    leaves.push(leaf);
+    leaves.push(leaf1);
 
     leaf.add(leaf1);
     obj.add(leaf);
@@ -296,16 +307,16 @@ function createCylinder(obj, x, y, z) {
     const geometry = new THREE.CylinderBufferGeometry(2.5, 2.5, 2.5, 100);
     const material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
 
-    const cylinder = new THREE.Mesh(geometry, material);
+    cylinderOvni = new THREE.Mesh(geometry, material);
 
-    cylinder.position.x = x;
-    cylinder.position.y = y;
-    cylinder.position.z = z;
+    cylinderOvni.position.x = x;
+    cylinderOvni.position.y = y;
+    cylinderOvni.position.z = z;
 
     cylinderLight = new THREE.SpotLight('yellow', 0.5, 50);
-    cylinder.add(cylinderLight);
+    cylinderOvni.add(cylinderLight);
 
-    obj.add(cylinder)
+    obj.add(cylinderOvni);
 }
 
 function createOvni(y) {
@@ -321,6 +332,65 @@ function createOvni(y) {
     ovni.position.y = y;
 
     scene.add(ovni);
+}
+
+function createBuilding(obj) {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        0, 0, 0,       //v0
+        0, 4.5, 0,     //v1
+        0, 7.5, 0,     //v2
+        0, 10, 0,      //v3
+        2.25, 4.5, 0,   //v4
+        2.25, 7.5, 0,   //v5
+        5.25, 7.5, 0,   //v6
+        5.25, 4.5, 0,   //v7
+        7.5, 0, 0,      //v8
+        7.5, 4.5, 0,    //v9
+        7.5, 7.5, 0,    //v10
+        12.5, 7.5, 0,   //v11
+        12.5, 4.5, 0,   //v12
+        12.5, 0, 0,     //v13
+        14.75, 4.5, 0,  //v14
+        14.75, 7.5, 0,  //v15
+        17.75, 7.5, 0,  //v16
+        17.75, 4.5, 0,  //v17
+        20, 0, 0,       //v18
+        20, 4.5, 0,     //v19
+        20, 7.5, 0,     //v20
+        20, 10, 0,      //v21
+        0, 0, 0,       //v22
+        0, 0, 10,       //v23
+        0, 10, 0,      //v24
+        0, 10, 10,      //v25
+    ]);
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const indices = [8, 0, 9, 0, 1, 9, 1, 2, 5, 1, 5, 4, 2, 3, 21, 2, 21, 20, 7, 6, 10,
+                    10, 9, 7, 13, 12, 19, 19, 18, 13, 17, 16, 20, 20, 19, 17, 12, 11, 15,
+                    12, 15, 14, 22, 23, 24, 23, 25, 24];
+
+    geometry.setIndex( indices );
+
+    geometry.computeVertexNormals()
+
+    const material = new THREE.MeshPhongMaterial({color: 'white', side: THREE.FrontSide});
+
+    building = new THREE.Mesh(geometry, material);
+
+    obj.add(building);
+}
+
+function createHouse(x, y, z) {
+    const house = new THREE.Object3D();
+    //createRoof(house);
+    //createChimney(house);
+    createBuilding(house);
+    //createDoor(house);
+
+    scene.add(house);
+    house.position.set(x, y, z);
 }
 
 ////////////
@@ -347,7 +417,7 @@ function update(){
         vector.z += 1;
     }
     vector.normalize();
-    ovni.position.add(vector.multiplyScalar(5  * delta));
+    ovni.position.add(vector.multiplyScalar(10  * delta));
 
 }
 
@@ -356,16 +426,6 @@ function update(){
 /////////////
 function render() {
     'use strict';
-    renderer.setAnimationLoop(function () {
-        renderer.render( scene, camera );
-    });
-
-    renderer.setRenderTarget(fieldTexture);
-    renderer.render(fieldScene, cameraTexture);
-
-    renderer.setRenderTarget(skyTexture);
-    renderer.render(skyScene, cameraTexture);
-
     renderer.setRenderTarget(null);
     renderer.render(scene, camera);
 }
@@ -379,6 +439,7 @@ function init() {
         antialias: true
     });
     renderer.xr.enabled = true;
+    
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(VRButton.createButton(renderer));
@@ -392,10 +453,27 @@ function init() {
     createSky();
     createMoon();
     createCorkOak(5, 27, 5, 1, 0);
+    createCorkOak(50, 19, -15, 0.8, Math.PI/2);
+    createCorkOak(-40, 25, -20, 1.2, Math.PI/4);
+    createCorkOak(-30, 25, 30, 1.1, Math.PI/6);
+    createCorkOak(60, 20, 60, 1, Math.PI/3);
+    createCorkOak(40, 20, -40, 0.9, Math.PI/2);
+    createHouse(-15, 19.5, -30); 
     createLights();
     createCameras();
 
+    const cameraGroup = new THREE.Group();
+    cameraGroup.position.set(0, 25, 0);
+    cameraGroup.lookAt(ovni.position.x - 7, ovni.position.y + 2, ovni.position.z + 7);
+    
 
+    //When user turn on the VR mode.
+    renderer.xr.addEventListener('sessionstart', function () {
+        scene.add(cameraGroup);
+        cameraGroup.add(camera);
+    });
+
+    renderer.setAnimationLoop(animate);
 
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("resize", onResize);
@@ -408,11 +486,9 @@ function init() {
 function animate() {
     'use strict';
     delta = clock.getDelta();
-
     update();   
     //controls.update();
     render();
-    requestAnimationFrame(animate);
 }
 
 ////////////////////////////
@@ -438,9 +514,13 @@ function onKeyDown(e) {
     if (!k[e.keyCode])
         switch (e.keyCode) {
             case N1:
+                renderer.setRenderTarget(fieldTexture);
+                renderer.render(fieldScene, cameraTexture);
                 field.material = new THREE.MeshPhongMaterial({map: fieldTexture.texture, displacementMap: heightMapTexture, displacementScale: 50});
                 break;
             case N2:
+                renderer.setRenderTarget(skyTexture);
+                renderer.render(skyScene, cameraTexture);            
                 sky.material = new THREE.MeshPhongMaterial({map: skyTexture.texture, side: THREE.BackSide});
                 break;
             case D:
@@ -457,62 +537,99 @@ function onKeyDown(e) {
 
             case Q:
                 moon.material = new THREE.MeshLambertMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
-                stem.material = new THREE.MeshLambertMaterial({color: 0x932e0f});
-                stem1.material = new THREE.MeshLambertMaterial({color: 0x932e0f});
-                leaf.material = new THREE.MeshLambertMaterial({color: 0x006400});
-                leaf1.material = new THREE.MeshLambertMaterial({color: 0x006400});
+                for (let i = 0; i < stems.length; i++) {
+                    stems[i].material = new THREE.MeshLambertMaterial({color: 0x932e0f});
+                }
+                for (let i = 0; i < leaves.length; i++) {
+                    leaves[i].material = new THREE.MeshLambertMaterial({color: 0x006400});
+                }
                 ship.material = new THREE.MeshLambertMaterial({color: 0xa7a7a7});
                 cockpit.material =  new THREE.MeshLambertMaterial({color: 'white'});
                 for (let i = 0; i < spheres.length; i++) {
                     spheres[i].material = new THREE.MeshLambertMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
                 }
-                cylinder.material = new THREE.MeshLambertMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                cylinderOvni.material = new THREE.MeshLambertMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                building.material = new THREE.MeshLambertMaterial({color: 'white'});                
+
+                isBasic = false;
                 break;
             
             case W:
                 moon.material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
-                stem.material = new THREE.MeshPhongMaterial({color: 0x932e0f});
-                stem1.material = new THREE.MeshPhongMaterial({color: 0x932e0f});
-                leaf.material = new THREE.MeshPhongMaterial({color: 0x006400});
-                leaf1.material = new THREE.MeshPhongMaterial({color: 0x006400});
+                for (let i = 0; i < stems.length; i++) {
+                    stems[i].material = new THREE.MeshPhongMaterial({color: 0x932e0f});
+                }
+                for (let i = 0; i < leaves.length; i++) {
+                    leaves[i].material = new THREE.MeshPhongMaterial({color: 0x006400});
+                }
                 ship.material = new THREE.MeshPhongMaterial({color: 0xa7a7a7});
                 cockpit.material =  new THREE.MeshPhongMaterial({color: 'white'});
                 for (let i = 0; i < spheres.length; i++) {
                     spheres[i].material = new THREE.MeshPhongMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
                 }
-                cylinder.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                building.material = new THREE.MeshPhongMaterial({color: 'white'});
 
+                isBasic = false;
                 break;
             
             case E:
                 moon.material = new THREE.MeshToonMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
-                stem.material = new THREE.MeshToonMaterial({color: 0x932e0f});
-                stem1.material = new THREE.MeshToonMaterial({color: 0x932e0f});
-                leaf.material = new THREE.MeshToonMaterial({color: 0x006400});
-                leaf1.material = new THREE.MeshToonMaterial({color: 0x006400});
+                for (let i = 0; i < stems.length; i++) {
+                    stems[i].material = new THREE.MeshToonMaterial({color: 0x932e0f});
+                }
+                for (let i = 0; i < leaves.length; i++) {
+                    leaves[i].material = new THREE.MeshToonMaterial({color: 0x006400});
+                }
                 ship.material = new THREE.MeshToonMaterial({color: 0xa7a7a7});
                 cockpit.material =  new THREE.MeshToonMaterial({color: 'white'});
                 for (let i = 0; i < spheres.length; i++) {
                     spheres[i].material = new THREE.MeshToonMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
                 }
-                cylinder.material = new THREE.MeshToonMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                cylinderOvni.material = new THREE.MeshToonMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                building.material = new THREE.MeshToonMaterial({color: 'white'});
 
+                isBasic = false;
                 break;
             
             case R:
-                moon.material = new THREE.MeshBasicMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
-                stem.material = new THREE.MeshBasicMaterial({color: 0x932e0f});
-                stem1.material = new THREE.MeshBasicMaterial({color: 0x932e0f});
-                leaf.material = new THREE.MeshBasicMaterial({color: 0x006400});
-                leaf1.material = new THREE.MeshBasicMaterial({color: 0x006400});
+                if (!isBasic) {
+                moon.material = new THREE.MeshBasicMaterial({color: 0xf3d150});
+                for (let i = 0; i < stems.length; i++) {
+                    stems[i].material = new THREE.MeshBasicMaterial({color: 0x932e0f});
+                }
+                for (let i = 0; i < leaves.length; i++) {
+                    leaves[i].material = new THREE.MeshBasicMaterial({color: 0x006400});
+                }
                 ship.material = new THREE.MeshBasicMaterial({color: 0xa7a7a7});
                 cockpit.material =  new THREE.MeshBasicMaterial({color: 'white'});
                 for (let i = 0; i < spheres.length; i++) {
-                    spheres[i].material = new THREE.MeshBasicMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                    spheres[i].material = new THREE.MeshBasicMaterial({color: 0xffa500});
                 }
-                cylinder.material = new THREE.MeshBasicMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                cylinderOvni.material = new THREE.MeshBasicMaterial({color: 'yellow'});
+                building.material = new THREE.MeshBasicMaterial({color: 'white'});
 
+                isBasic = true;
                 break;
+                } else {
+                    moon.material = new THREE.MeshPhongMaterial({color: 0xf3d150, emissive: 0xf3d150, emissiveIntensity: 0.5});
+                    for (let i = 0; i < stems.length; i++) {
+                        stems[i].material = new THREE.MeshPhongMaterial({color: 0x932e0f});
+                    }
+                    for (let i = 0; i < leaves.length; i++) {
+                        leaves[i].material = new THREE.MeshPhongMaterial({color: 0x006400});
+                    }
+                    ship.material = new THREE.MeshPhongMaterial({color: 0xa7a7a7});
+                    cockpit.material =  new THREE.MeshPhongMaterial({color: 'white'});
+                    for (let i = 0; i < spheres.length; i++) {
+                        spheres[i].material = new THREE.MeshPhongMaterial({color: 0xffa500, emissive: 0xffa500, emissiveIntensity: 0.3});
+                    }
+                    cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
+                    building.material = new THREE.MeshPhongMaterial({color: 'white'});
+
+                    isBasic = false;
+                    break;
+                }
         }
     k[e.keyCode] = true;
 }
