@@ -427,7 +427,7 @@ function createDoor(obj){
 
     geometry.computeVertexNormals()
 
-    const material = new THREE.MeshPhongMaterial({color: 0xb3e5fc, side: THREE.FrontSide});
+    const material = new THREE.MeshPhongMaterial({color: 0xa7c7e7, side: THREE.FrontSide});
 
     doorHouse = new THREE.Mesh(geometry, material);
 
@@ -484,7 +484,7 @@ function createChimney(obj) {
 
     geometry.computeVertexNormals()
 
-    const material = new THREE.MeshPhongMaterial({color: 'white', side: THREE.FrontSide});
+    const material = new THREE.MeshPhongMaterial({color: 0xff964f, side: THREE.FrontSide});
 
     chimneyHouse = new THREE.Mesh(geometry, material);
 
