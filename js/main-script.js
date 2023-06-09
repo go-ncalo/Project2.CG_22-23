@@ -10,27 +10,23 @@ var cameraTexture;
 var fieldTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var skyTexture = new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter});
 var fieldScene, skyScene;
-var field, sky, moon, stem, stem1, leaf, leaf1, ship, cockpit, cylinderOvni, building;
+var field, sky, moon, stem, stem1, leaf, leaf1, ship, cockpit, cylinderOvni, building, windowHouse, doorHouse, roofHouse, chimneyHouse;
 var spheres = [];
 var stems = [];
 var leaves = [];
 var heightMapTexture;
-var controls;
 var moonDirectionalLight, moonAmbientLight, sphereLight, cylinderLight;
 var sphereLights = [];
 const clock = new THREE.Clock();
 var delta;
 var k = {};
 var isBasic = false;
-var cameraVR;
 
 const
     Q = 81, W = 87, E = 69, R = 82,
     S = 83, P = 80, A = 65, D = 68,
     LEFT = 37, RIGHT = 39, UP = 38, DOWN = 40,
     N1 = 49, N2 = 50;
-
-
 
 /////////////////////
 /* CREATE SCENE(S) */
@@ -55,13 +51,9 @@ function createCameras() {
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
     camera.position.z = -70;
     camera.position.y = 40;
-    camera.position.x = -30;
+    camera.position.x = -40;
 
     camera.lookAt(0, 30, 0);
-
-    cameraVR = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000 );
-
-    //controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     cameraTexture = new THREE.OrthographicCamera(width / - 70, width / 70, height / 70, height / - 70, -10, 1000);
     cameraTexture.position.z = 15;
@@ -77,7 +69,7 @@ function createLights() {
     moonDirectionalLight.position.set(moon.position.x, moon.position.y, moon.position.z);
     moonAmbientLight = new THREE.AmbientLight(0xf3d150, 0.5);
     moon.add(moonDirectionalLight);
-    scene.add(moonAmbientLight);
+    moon.add(moonAmbientLight);
 
 }
 
@@ -363,13 +355,21 @@ function createBuilding(obj) {
         0, 0, 10,       //v23
         0, 10, 0,      //v24
         0, 10, 10,      //v25
+        0, 0, 10,       //v26
+        0, 10, 10,      //v27
+        20, 0, 10,       //v28
+        20, 10, 10,      //v29
+        20, 0, 0,       //v30
+        20, 0, 10,       //v31
+        20, 10, 0,      //v32
+        20, 10, 10,      //v33
     ]);
 
     geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
     const indices = [8, 0, 9, 0, 1, 9, 1, 2, 5, 1, 5, 4, 2, 3, 21, 2, 21, 20, 7, 6, 10,
                     10, 9, 7, 13, 12, 19, 19, 18, 13, 17, 16, 20, 20, 19, 17, 12, 11, 15,
-                    12, 15, 14, 22, 23, 24, 23, 25, 24];
+                    12, 15, 14, 22, 23, 24, 23, 25, 24, 28, 26, 29, 26, 27, 29, 30, 31, 32, 31, 33, 32];
 
     geometry.setIndex( indices );
 
@@ -382,12 +382,122 @@ function createBuilding(obj) {
     obj.add(building);
 }
 
+function createWindow(obj) {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        2.25, 4.5, 0,   //v4
+        2.25, 7.5, 0,   //v5
+        5.25, 7.5, 0,   //v6
+        5.25, 4.5, 0,   //v7
+        14.75, 4.5, 0,  //v14
+        14.75, 7.5, 0,  //v15
+        17.75, 7.5, 0,  //v16
+        17.75, 4.5, 0  //v17
+    ]);
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const indices = [3, 0, 2, 0, 1, 2, 7, 4, 6, 4, 5, 6];
+
+    geometry.setIndex( indices );
+
+    geometry.computeVertexNormals();
+
+    const material = new THREE.MeshPhongMaterial({color: 0xb3e5fc, side: THREE.FrontSide});
+
+    windowHouse = new THREE.Mesh(geometry, material);
+
+    obj.add(windowHouse);
+}
+
+function createDoor(obj){
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        7.5, 0, 0,      //v8
+        7.5, 7.5, 0,    //v10
+        12.5, 7.5, 0,   //v11
+        12.5, 0, 0,     //v13
+    ]);
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const indices = [3, 0, 2, 0, 1, 2];
+
+    geometry.setIndex( indices );
+
+    geometry.computeVertexNormals()
+
+    const material = new THREE.MeshPhongMaterial({color: 0xb3e5fc, side: THREE.FrontSide});
+
+    doorHouse = new THREE.Mesh(geometry, material);
+
+    obj.add(doorHouse);
+
+}
+
+function createRoof(obj) {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        0, 10, 0,      //v3
+        20, 10, 0,      //v21
+        0, 10, 10,      //v25
+        20, 10, 10,      //v29
+        2.25, 15, 0,   //v34
+        14.75, 15, 0,  //v35
+
+    ]);
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const indices = [0, 2, 4, 2, 4, 3, 4, 5, 3, 5, 1, 3, 1, 0, 5, 0, 4, 5];
+
+    geometry.setIndex( indices );
+
+    geometry.computeVertexNormals()
+
+    const material = new THREE.MeshPhongMaterial({color: 0xff6a06, side: THREE.FrontSide});
+
+    roofHouse = new THREE.Mesh(geometry, material);
+
+    obj.add(roofHouse);
+}
+
+function createChimney(obj) {
+    const geometry = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+        7.5, 10, 0,    //v36
+        2.5, 10, 0,   //v37
+        7.5, 17.5, 0,      //v38
+        2.5, 17.5, 0,      //v39
+        7.5, 10, 2.5,   //v40
+        2.5, 10, 2.5,  //v41
+        7.5, 17.5, 2.5,   //v42
+        2.5, 17.5, 2.5,  //v43
+
+    ]);
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const indices = [0, 1, 2, 1, 3, 2, 1, 5, 3, 5, 7, 3, 2, 3, 6, 3, 7, 6];
+
+    geometry.setIndex( indices );
+
+    geometry.computeVertexNormals()
+
+    const material = new THREE.MeshPhongMaterial({color: 'white', side: THREE.FrontSide});
+
+    chimneyHouse = new THREE.Mesh(geometry, material);
+
+    obj.add(chimneyHouse);
+}
+
 function createHouse(x, y, z) {
     const house = new THREE.Object3D();
-    //createRoof(house);
-    //createChimney(house);
+    createRoof(house);
+    createChimney(house);
     createBuilding(house);
-    //createDoor(house);
+    createWindow(house);
+    createDoor(house);
 
     scene.add(house);
     house.position.set(x, y, z);
@@ -458,17 +568,17 @@ function init() {
     createCorkOak(-30, 25, 30, 1.1, Math.PI/6);
     createCorkOak(60, 20, 60, 1, Math.PI/3);
     createCorkOak(40, 20, -40, 0.9, Math.PI/2);
-    createHouse(-15, 19.5, -30); 
+    createHouse(-25, 17, -30); 
     createLights();
     createCameras();
-
-    const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(0, 25, 0);
-    cameraGroup.lookAt(ovni.position.x - 7, ovni.position.y + 2, ovni.position.z + 7);
     
+    const cameraGroup = new THREE.Group();
+    cameraGroup.rotation.y = 7*Math.PI/6;
+    cameraGroup.position.set(-30, 30, -60);    
 
     //When user turn on the VR mode.
     renderer.xr.addEventListener('sessionstart', function () {
+        createCameras();
         scene.add(cameraGroup);
         cameraGroup.add(camera);
     });
@@ -486,8 +596,7 @@ function init() {
 function animate() {
     'use strict';
     delta = clock.getDelta();
-    update();   
-    //controls.update();
+    update();
     render();
 }
 
@@ -514,11 +623,15 @@ function onKeyDown(e) {
     if (!k[e.keyCode])
         switch (e.keyCode) {
             case N1:
+                fieldScene.remove.apply(fieldScene, fieldScene.children);
+                createFlowerFieldTexture();
                 renderer.setRenderTarget(fieldTexture);
                 renderer.render(fieldScene, cameraTexture);
                 field.material = new THREE.MeshPhongMaterial({map: fieldTexture.texture, displacementMap: heightMapTexture, displacementScale: 50});
                 break;
             case N2:
+                skyScene.remove.apply(skyScene, skyScene.children);
+                createStarySkyTexture();
                 renderer.setRenderTarget(skyTexture);
                 renderer.render(skyScene, cameraTexture);            
                 sky.material = new THREE.MeshPhongMaterial({map: skyTexture.texture, side: THREE.BackSide});
@@ -550,6 +663,10 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshLambertMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshLambertMaterial({color: 'white'});                
+                roofHouse.material = new THREE.MeshLambertMaterial({color: 'orange'});
+                doorHouse.material = new THREE.MeshLambertMaterial({color: 'blue'});
+                windowHouse.material = new THREE.MeshLambertMaterial({color: 'blue'});
+                chimneyHouse.material = new THREE.MeshLambertMaterial({color: 'white'});
 
                 isBasic = false;
                 break;
@@ -569,6 +686,10 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshPhongMaterial({color: 'white'});
+                roofHouse.material = new THREE.MeshPhongMaterial({color: 'orange'});
+                doorHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                windowHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                chimneyHouse.material = new THREE.MeshPhongMaterial({color: 'white'});
 
                 isBasic = false;
                 break;
@@ -588,6 +709,10 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshToonMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshToonMaterial({color: 'white'});
+                roofHouse.material = new THREE.MeshToonMaterial({color: 'orange'});
+                doorHouse.material = new THREE.MeshToonMaterial({color: 'blue'});
+                windowHouse.material = new THREE.MeshToonMaterial({color: 'blue'});
+                chimneyHouse.material = new THREE.MeshToonMaterial({color: 'white'});
 
                 isBasic = false;
                 break;
@@ -608,6 +733,10 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshBasicMaterial({color: 'yellow'});
                 building.material = new THREE.MeshBasicMaterial({color: 'white'});
+                roofHouse.material = new THREE.MeshBasicMaterial({color: 'orange'});
+                doorHouse.material = new THREE.MeshBasicMaterial({color: 'blue'});
+                windowHouse.material = new THREE.MeshBasicMaterial({color: 'blue'});
+                chimneyHouseHouse.material = new THREE.MeshBasicMaterial({color: 'white'});
 
                 isBasic = true;
                 break;
@@ -626,6 +755,10 @@ function onKeyDown(e) {
                     }
                     cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                     building.material = new THREE.MeshPhongMaterial({color: 'white'});
+                    roofHouse.material = new THREE.MeshPhongMaterial({color: 'orange'});
+                    doorHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                    windowHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                    chimneyHouse.material = new THREE.MeshPhongMaterial({color: 'white'});
 
                     isBasic = false;
                     break;
