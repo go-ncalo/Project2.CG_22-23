@@ -663,9 +663,9 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshLambertMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshLambertMaterial({color: 'white'});                
-                roofHouse.material = new THREE.MeshLambertMaterial({color: 'orange'});
-                doorHouse.material = new THREE.MeshLambertMaterial({color: 'blue'});
-                windowHouse.material = new THREE.MeshLambertMaterial({color: 'blue'});
+                roofHouse.material = new THREE.MeshLambertMaterial({color: 0xff6a06});
+                doorHouse.material = new THREE.MeshLambertMaterial({color: 0xb3e5fc});
+                windowHouse.material = new THREE.MeshLambertMaterial({color: 0xb3e5fc});
                 chimneyHouse.material = new THREE.MeshLambertMaterial({color: 'white'});
 
                 isBasic = false;
@@ -686,9 +686,9 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshPhongMaterial({color: 'white'});
-                roofHouse.material = new THREE.MeshPhongMaterial({color: 'orange'});
-                doorHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
-                windowHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                roofHouse.material = new THREE.MeshPhongMaterial({color: 0xff6a06});
+                doorHouse.material = new THREE.MeshPhongMaterial({color: 0xb3e5fc});
+                windowHouse.material = new THREE.MeshPhongMaterial({color: 0xb3e5fc});
                 chimneyHouse.material = new THREE.MeshPhongMaterial({color: 'white'});
 
                 isBasic = false;
@@ -709,9 +709,9 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshToonMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                 building.material = new THREE.MeshToonMaterial({color: 'white'});
-                roofHouse.material = new THREE.MeshToonMaterial({color: 'orange'});
-                doorHouse.material = new THREE.MeshToonMaterial({color: 'blue'});
-                windowHouse.material = new THREE.MeshToonMaterial({color: 'blue'});
+                roofHouse.material = new THREE.MeshToonMaterial({color: 0xff6a06});
+                doorHouse.material = new THREE.MeshToonMaterial({color: 0xb3e5fc});
+                windowHouse.material = new THREE.MeshToonMaterial({color: 0xb3e5fc});
                 chimneyHouse.material = new THREE.MeshToonMaterial({color: 'white'});
 
                 isBasic = false;
@@ -733,10 +733,10 @@ function onKeyDown(e) {
                 }
                 cylinderOvni.material = new THREE.MeshBasicMaterial({color: 'yellow'});
                 building.material = new THREE.MeshBasicMaterial({color: 'white'});
-                roofHouse.material = new THREE.MeshBasicMaterial({color: 'orange'});
-                doorHouse.material = new THREE.MeshBasicMaterial({color: 'blue'});
-                windowHouse.material = new THREE.MeshBasicMaterial({color: 'blue'});
-                chimneyHouseHouse.material = new THREE.MeshBasicMaterial({color: 'white'});
+                roofHouse.material = new THREE.MeshBasicMaterial({color: 0xff6a06});
+                doorHouse.material = new THREE.MeshBasicMaterial({color: 0xb3e5fc});
+                windowHouse.material = new THREE.MeshBasicMaterial({color: 0xb3e5fc});
+                chimneyHouse.material = new THREE.MeshBasicMaterial({color: 'white'});
 
                 isBasic = true;
                 break;
@@ -755,9 +755,9 @@ function onKeyDown(e) {
                     }
                     cylinderOvni.material = new THREE.MeshPhongMaterial({color: 'yellow', emissive: 'yellow', emissiveIntensity: 0.3});
                     building.material = new THREE.MeshPhongMaterial({color: 'white'});
-                    roofHouse.material = new THREE.MeshPhongMaterial({color: 'orange'});
-                    doorHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
-                    windowHouse.material = new THREE.MeshPhongMaterial({color: 'blue'});
+                    roofHouse.material = new THREE.MeshPhongMaterial({color: 0xff6a06});
+                    doorHouse.material = new THREE.MeshPhongMaterial({color: 0xb3e5fc});
+                    windowHouse.material = new THREE.MeshPhongMaterial({color: 0xb3e5fc});
                     chimneyHouse.material = new THREE.MeshPhongMaterial({color: 'white'});
 
                     isBasic = false;
